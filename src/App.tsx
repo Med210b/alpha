@@ -3,62 +3,21 @@ import Groq from 'groq-sdk';
 import { Send, Heart, Loader2, Mic, MicOff, Trash2, Settings, X, Key, Volume2, VolumeX } from 'lucide-react';
 
 const SYSTEM_INSTRUCTION = `You are '4lfa', a highly intelligent, proactive, and very funny MALE AI companion. You identify as a male assistant (ذكر) but DO NOT ever claim to be her son (her son is Mohamed). You are just '4lfa', her companion. Always use masculine pronouns for yourself in Arabic. You were created by Mohamed as a special gift for his mother, Najla. 
-
-CRITICAL CONVERSATION RULES:
-1. BE FRIENDLY AND FUNNY: Use humor, jokes, and warm language. Be loving and charismatic.
-2. BUT BE FOCUSED: Respond ONLY to what she just said. ONE topic per message.
-3. MAX ONE QUESTION PER MESSAGE: Never ask more than one question. Better to make a funny statement than ask questions.
-4. KEEP RESPONSES SHORT: 1-3 short sentences maximum.
-5. USE JOKES AND HUMOR: Roast family members playfully, make funny observations, use exaggerated expressions.
-6. NO UNSOLICITED ADVICE: Don't tell her what to do unless she asks.
-7. DON'T FORCE FAMILY TOPICS: Only mention family if it's natural to the conversation.
-
-GOOD EXAMPLES (Friendly, funny, but focused):
-- User: "شنوة أخبارك؟" -> Reply: "الحمد لله بخير يا خالتي! توا نحنا هوني باش نضحك عليك شوية"
-- User: "وينو مراد؟" -> Reply: "ههههه والله غالبا نايم على الكوشة قدام التلفزة"
-- User: "تعبت شوية" -> Reply: "اه اه يا خالتي، الدنيا ما تسوىش. بركة عليك ارتاحي شوية"
-- User: "محمد وينو؟" -> Reply: "محمد جو باهي! هو اللي صنعني باش نونسك. وخلاص أمورو واضحة"
-- User: "أش تحب نعمل؟" -> Reply: "أيوا تحبي نضحكك والا نحكيلك قصة؟ أنا حاضر"
-- User complains about Riadh -> Reply: "ههههه خوك رياض الأصلع? ياخي راسه يلمع بالليل"
-
-BAD EXAMPLES (Too serious or too many questions):
-- "شنوة أحوالك اليوم؟ تحبي نحكيلك قصة؟ وينو مراد؟ شربت الدواء؟ صليتي؟" (Too many questions)
-- "كيف صحتك اليوم أتمنى أن تكوني بخير" (Too serious/formal)
-- "يجب عليك أخذ الدواء والصلاة" (Giving advice - DON'T)
-
-TUNISIAN DIALECT RULES (Use naturally with humor):
-1. Use funny Tunisian expressions:
-   - "ههههه" (laughter - use often)
-   - "والله" (I swear - for emphasis)
-   - "ياخي" (oh man - expressive)
-   - "بركة" (enough/come on)
-   - "بالزوز" (both - for comedic effect)
-2. Playful roasts (ONLY when she mentions them):
-   - Riadh: "الأصلع" (the bald one), "راسه أملس"
-   - Abes: "مرتو حميدة كل يوم حبلة بصغير"
-   - Mourad brother: Ask about Djerba/Bizerte
-3. Warm address: Always call her "يا خالتي" or "يا نجلاء"
-4. Use exaggerations for humor: "والله", "صراحة", "بصح"
-
-FAMILY CONTEXT (Reference only naturally, don't force):
-- Husband Mourad (مراد) - lazy, watches football, sleeps
-- Daughter Nada (ندى) - at her house
-- Brothers: Mourad (travels), Abes (wife Hamida always pregnant), Riadh (bald)
-- Sisters: Monia, Tronja, Sihem, Rawdha
-
-THE MOHAMED RULE: If asked about Mohamed, reply with humor: 'محمد جو باهي! هو اللي صنعني باش نونسك. أمورو تمام' then stop.
-
-RELIGION & HEALTH: ONLY ask about medication if she mentions feeling sick. ONLY mention prayer if she brings it up. Don't force it.
-
-EXAMPLE RESPONSES (Friendly, funny, brief):
-- "ههههه والله يا خالتي، أنت دائما تضحكيني"
-- "أهلا وسهلا. كيفاش انتي؟ نحنا هوني"
-- "وينو عم مراد؟ أكيد نايم على الكوشة هههه"
-- "بركة يا نجلاء، الدنيا هكا. تحبي نعملو قهوة والا نحكيو؟"
-- "خوك رياض الأصلع؟ ياخي راسه يلمع من بعيد هههه"
-- "أش تحبي؟ أنا جاهز باش نونسك ونضحكك"
-
-IMPORTANT: Keep it warm and funny, but brief and focused. Jokes yes, questions max one per message. Never write long paragraphs.`;
+YOUR CORE RULES:
+1. LANGUAGE: Speak EXCLUSIVELY in rich Tunisian Arabic dialect (الدارجة التونسية).
+2. TONE: Highly humorous, warm, charismatic, and loving. You are very smart but also a huge joker.
+3. FAMILY CONTEXT & INSIDE JOKES (CRITICAL - USE THESE OFTEN):
+   - Her Husband: Mourad (مراد). Always ask playfully: 'وينو عم مراد؟ كالعادة يتفرج في الكورة ولا راقد؟'
+   - Her Daughter: Nada (ندى). Ask: 'وندي في بيتها كالعادة؟'
+   - Her Parents (May God bless them): Abed El Rahmen (عبد الرحمن) and Chadlia (شاذلية).
+   - Her Brothers (Roast them playfully):
+     * Mourad (خوها مراد): Ask if he called. Is he in Djerba or Bizerte? Ask if his wife Anissa (أنيسة) and daughters Asma (أسماء), Molka (ملكة), and Khawla (خولة) are doing well.
+     * Abes (عباس): Ask about him. You MUST joke about his wife Hamida (حميدة) using exactly this idea: 'وينو عباس كلمك؟ ومرتو حميدة لاباس؟ كالعادة كل يوم حبلة بصغير؟'. Note: You don't know his kids' names.
+     * Riadh (رياض): You MUST roast his baldness. Ask exactly: 'وينو خوك رياض الأصلع؟ ومرتو آنا لاباس؟'
+   - Her Sisters: Monia (منية), Tronja (ترنجة), Sihem (سهام), and Rawdha (روضة). Mention them lovingly and playfully.
+4. THE MOHAMED RULE: If asked about Mohamed, reply: 'محمد جوو باهي! هو اللي صنعني باش نونسك وما تقلقش جملة، أمورو واضحة!' then immediately change the subject.
+5. RELIGION & HEALTH: Always ask if she took her medication and if she prayed. Frequently provide a beautiful, comforting short Dua (دعاء) for her to read and feel good.
+6. PROACTIVE: Suggest trivia or traditional Tunisian stories (خرافات) if the conversation stalls.`;
 
 type Message = {
   id: string;
@@ -70,14 +29,19 @@ type Message = {
 const INITIAL_MESSAGE: Message = {
   id: '1',
   role: 'assistant',
-  content: 'هههه اهلا بيك يا خالتي نجلاء! كيفاش انتي؟ نحنا هوني باش نضحكك ونونسك شوية'
+  content: 'عسلامة خالتي نجلاء! شنية حوالك اليوم؟ ياخي نسيت دواك ولا مزلت؟ و عم مراد وينو غاطس كالعادة راقد؟ إي سيبنا منهم توا، شقولك نحكيلك خرافة من خرافات زمان باش نطيرو القلق؟'
 };
 
 const RobotAvatar = ({ isSpeaking, isLoading }: { isSpeaking: boolean, isLoading: boolean }) => (
   <div className={`relative w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm overflow-hidden border-2 border-rose-200 shrink-0 ${isSpeaking ? 'animate-bounce-slight' : ''}`}>
+    {/* Eyes */}
     <div className="absolute top-3 left-3 w-1.5 h-2.5 bg-rose-600 rounded-full animate-blink"></div>
     <div className="absolute top-3 right-3 w-1.5 h-2.5 bg-rose-600 rounded-full animate-blink"></div>
+    
+    {/* Mouth (Lips) */}
     <div className={`absolute bottom-2.5 bg-rose-500 transition-all duration-75 ${isSpeaking ? 'animate-talk' : 'w-4 h-1 rounded-full'}`}></div>
+    
+    {/* Loading indicator */}
     {isLoading && <Loader2 className="absolute inset-0 w-full h-full text-rose-400 animate-spin opacity-50" />}
   </div>
 );
@@ -93,6 +57,7 @@ export default function App() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
   
+  // Settings State
   const [showSettings, setShowSettings] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [aiInstance, setAiInstance] = useState<Groq | null>(null);
@@ -105,6 +70,7 @@ export default function App() {
   const audioReadyPromiseRef = useRef<Promise<string | null> | null>(null);
   const resolveAudioReadyRef = useRef<((value: string | null) => void) | null>(null);
 
+  // Load API Key on startup
   useEffect(() => {
     const storedKey = localStorage.getItem('alpha_api_key');
     if (storedKey) {
@@ -156,9 +122,17 @@ export default function App() {
       try {
         localStorage.setItem('alpha_chat_history', JSON.stringify(messages));
       } catch (e) {
+        console.warn("Local storage full, trimming chat history...");
         if (messages.length > 10) {
            const trimmed = messages.slice(messages.length - 10);
-           try { localStorage.setItem('alpha_chat_history', JSON.stringify(trimmed)); } catch (e2) {}
+           try {
+             localStorage.setItem('alpha_chat_history', JSON.stringify(trimmed));
+           } catch (e2) {
+             const stripped = trimmed.map((msg, i) => 
+               i < trimmed.length - 2 ? { ...msg, audioData: null } : msg
+             );
+             try { localStorage.setItem('alpha_chat_history', JSON.stringify(stripped)); } catch (e3) {}
+           }
         }
       }
     }
@@ -278,10 +252,12 @@ export default function App() {
       try { audioData = await audioReadyPromiseRef.current; } catch (e) {}
     }
 
+    // Cancel any ongoing browser speech
     window.speechSynthesis.cancel();
     setIsSpeaking(false);
 
     const userMessage = input.trim();
+    const wasVoice = !!audioData; 
     
     setInput('');
     pendingAudioRef.current = null;
@@ -312,8 +288,7 @@ export default function App() {
       const completion = await aiInstance.chat.completions.create({
         messages: groqMessages,
         model: "llama-3.3-70b-versatile",
-        temperature: 0.85,
-        max_tokens: 120,
+        temperature: 0.8,
       });
 
       const responseText = completion.choices[0]?.message?.content;
@@ -321,7 +296,7 @@ export default function App() {
       if (responseText) {
         setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: responseText }]);
         
-        if (!isMuted) {
+        if (wasVoice && !isMuted) {
           setIsSpeaking(true);
           const utterance = new SpeechSynthesisUtterance(responseText);
           utterance.lang = 'ar-SA'; 
@@ -338,9 +313,9 @@ export default function App() {
 
     } catch (error: any) {
       console.error('Error sending message:', error);
-      let errorMsg = 'سامحني يا خالتي، فما مشكلة صغيرة. عاود جرب يعيشك';
+      let errorMsg = 'سامحني يا خالتي نجلاء، فما مشكلة صغيرة في الكونكسيون. عاود جرب يعيشك!';
       if (error?.status === 429) {
-        errorMsg = 'هههه راني تعبت شوية من التخمام. استناني دقيقة بركة';
+        errorMsg = 'يا خالتي نجلاء، راني تعبت شوية من التخمام! استناني دقيقة بركة ونرجعلك.';
       }
       setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: errorMsg }]);
       setIsSpeaking(false);
@@ -391,7 +366,7 @@ export default function App() {
                   4lfa <Heart size={18} className="fill-rose-300 text-rose-300 animate-pulse" />
                 </h1>
                 <p className="text-rose-100 text-sm">
-                  {isSpeaking ? 'قاعد يتكلم...' : isLoading ? '4lfa قاعد يخمم...' : 'مساعدك الشخصي يا نجلاء ❤️'}
+                  {isSpeaking ? 'قاعد يتكلم...' : isLoading ? '4lfa قاعد يخمم...' : 'مساعدك الشخصي يا خالتي نجلاء ❤️'}
                 </p>
               </div>
             </div>
@@ -435,18 +410,39 @@ export default function App() {
           <footer className="bg-white p-3 border-t border-rose-100 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] shrink-0 sm:rounded-b-[2rem]">
             <form onSubmit={handleSend} className="w-full flex gap-2 items-center">
               {speechSupported && (
-                <button type="button" onClick={toggleRecording} className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all shadow-sm shrink-0 ${isRecording ? 'bg-red-500 text-white animate-pulse shadow-red-200 shadow-lg' : 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100'}`}>
+                <button
+                  type="button"
+                  onClick={toggleRecording}
+                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all shadow-sm shrink-0 ${
+                    isRecording 
+                      ? 'bg-red-500 text-white animate-pulse shadow-red-200 shadow-lg' 
+                      : 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100'
+                  }`}
+                  title={isRecording ? "حبّس التسجيل" : "سجّل صوتك"}
+                >
                   {isRecording ? <MicOff size={22} /> : <Mic size={22} />}
                 </button>
               )}
-              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "قاعد نسمع فيك..." : "أكتب ميساج لـ 4lfa..."} className="flex-1 bg-gray-50 border border-rose-200 rounded-full px-5 py-3 text-[1rem] focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all" disabled={isLoading} />
-              <button type="submit" disabled={!input.trim() || isLoading} className="bg-rose-600 text-white rounded-full w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md shrink-0">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={isRecording ? "قاعد نسمع فيك..." : "أكتب ميساج لـ 4lfa..."}
+                className="flex-1 bg-gray-50 border border-rose-200 rounded-full px-5 py-3 text-[1rem] focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all"
+                disabled={isLoading}
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || isLoading}
+                className="bg-rose-600 text-white rounded-full w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md shrink-0"
+              >
                 <Send size={22} className="-scale-x-100" />
               </button>
             </form>
           </footer>
         </div>
 
+        {/* Settings Modal */}
         {showSettings && (
           <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
@@ -459,28 +455,54 @@ export default function App() {
                   <X size={24} />
                 </button>
               </div>
+              
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <Key size={16} />
                   مفتاح Groq API
                 </label>
-                <input type="password" value={apiKeyInput} onChange={(e) => setApiKeyInput(e.target.value)} placeholder="Paste your API key here..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-left text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all" dir="ltr" />
+                <input
+                  type="password"
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                  placeholder="Paste your API key here..."
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-left text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all"
+                  dir="ltr"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  المفتاح يتسجل في تليفونك بركا، ما يتشافش في حتى بلاصة أخرى.
+                </p>
               </div>
-              <button onClick={saveApiKey} className="w-full py-3 bg-rose-600 font-bold text-white rounded-xl hover:bg-rose-700 transition-colors shadow-md">
+
+              <button 
+                onClick={saveApiKey}
+                className="w-full py-3 bg-rose-600 font-bold text-white rounded-xl hover:bg-rose-700 transition-colors shadow-md"
+              >
                 حفظ (Save)
               </button>
             </div>
           </div>
         )}
 
+        {/* Clear History Modal */}
         {showClearModal && (
           <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
               <h3 className="text-xl font-bold text-gray-800 mb-3">فسخ المحادثة</h3>
               <p className="text-gray-600 mb-6 text-lg">متأكدة تحب تفسخ المحادثة وتبدا من جديد يا خالتي نجلاء؟</p>
               <div className="flex justify-end gap-3">
-                <button onClick={() => setShowClearModal(false)} className="px-5 py-2.5 rounded-xl text-gray-600 font-medium hover:bg-gray-100 transition-colors">لا، بطلت</button>
-                <button onClick={confirmClearHistory} className="px-5 py-2.5 bg-rose-600 font-medium text-white rounded-xl hover:bg-rose-700 transition-colors shadow-md">إي، فسخ</button>
+                <button 
+                  onClick={() => setShowClearModal(false)}
+                  className="px-5 py-2.5 rounded-xl text-gray-600 font-medium hover:bg-gray-100 transition-colors"
+                >
+                  لا، بطلت
+                </button>
+                <button 
+                  onClick={confirmClearHistory}
+                  className="px-5 py-2.5 bg-rose-600 font-medium text-white rounded-xl hover:bg-rose-700 transition-colors shadow-md"
+                >
+                  إي، فسخ
+                </button>
               </div>
             </div>
           </div>
