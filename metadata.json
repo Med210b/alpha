@@ -1,0 +1,5 @@
+{
+  "name": "Alpha AI Companion",
+  "description": "A voice-enabled AI companion for Najla speaking Tunisian Arabic.",
+  "requestFramePermissions": ["microphone"]
+}
