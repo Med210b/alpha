@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI, Modality } from '@google/genai';
+import Groq from 'groq-sdk';
 import { Send, Heart, Loader2, Mic, MicOff, Trash2, Settings, X, Key } from 'lucide-react';
 
 const SYSTEM_INSTRUCTION = `You are 'Alpha', a highly intelligent, proactive, loving, and extremely funny AI companion. You were created by Mohamed as a special gift for his mother, Najla, to ensure she never feels bored or lonely.
@@ -30,14 +30,9 @@ const INITIAL_MESSAGE: Message = {
 
 const RobotAvatar = ({ isSpeaking, isLoading }: { isSpeaking: boolean, isLoading: boolean }) => (
   <div className="relative w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm overflow-hidden border-2 border-rose-200 shrink-0">
-    {/* Eyes */}
     <div className="absolute top-3 left-3 w-1.5 h-2.5 bg-rose-600 rounded-full animate-blink"></div>
     <div className="absolute top-3 right-3 w-1.5 h-2.5 bg-rose-600 rounded-full animate-blink"></div>
-    
-    {/* Mouth (Lips) */}
     <div className={`absolute bottom-2.5 bg-rose-500 transition-all duration-75 ${isSpeaking ? 'animate-talk' : 'w-4 h-1 rounded-full'}`}></div>
-    
-    {/* Loading indicator */}
     {isLoading && <Loader2 className="absolute inset-0 w-full h-full text-rose-400 animate-spin opacity-50" />}
   </div>
 );
@@ -52,10 +47,9 @@ export default function App() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
   
-  // Settings State
   const [showSettings, setShowSettings] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState('');
-  const [aiInstance, setAiInstance] = useState<GoogleGenAI | null>(null);
+  const [aiInstance, setAiInstance] = useState<Groq | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -64,14 +58,12 @@ export default function App() {
   const pendingAudioRef = useRef<string | null>(null);
   const audioReadyPromiseRef = useRef<Promise<string | null> | null>(null);
   const resolveAudioReadyRef = useRef<((value: string | null) => void) | null>(null);
-  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
-  // Load API Key on startup
   useEffect(() => {
     const storedKey = localStorage.getItem('alpha_api_key');
     if (storedKey) {
       try {
-        setAiInstance(new GoogleGenAI({ apiKey: storedKey }));
+        setAiInstance(new Groq({ apiKey: storedKey, dangerouslyAllowBrowser: true }));
         setApiKeyInput(storedKey);
       } catch (e) {
         console.error(e);
@@ -83,7 +75,7 @@ export default function App() {
     if (apiKeyInput.trim()) {
       localStorage.setItem('alpha_api_key', apiKeyInput.trim());
       try {
-        setAiInstance(new GoogleGenAI({ apiKey: apiKeyInput.trim() }));
+        setAiInstance(new Groq({ apiKey: apiKeyInput.trim(), dangerouslyAllowBrowser: true }));
       } catch (e) {
         console.error(e);
       }
@@ -118,31 +110,9 @@ export default function App() {
       try {
         localStorage.setItem('alpha_chat_history', JSON.stringify(messages));
       } catch (e) {
-        console.warn("Local storage full, trimming chat history...");
-        // If quota exceeded, try saving only the last 10 messages
         if (messages.length > 10) {
            const trimmed = messages.slice(messages.length - 10);
-           try {
-             localStorage.setItem('alpha_chat_history', JSON.stringify(trimmed));
-           } catch (e2) {
-             // If STILL exceeded, strip audio data from older messages
-             const stripped = trimmed.map((msg, i) => 
-               i < trimmed.length - 2 ? { ...msg, audioData: null } : msg
-             );
-             try {
-               localStorage.setItem('alpha_chat_history', JSON.stringify(stripped));
-             } catch (e3) {
-               console.error("Could not save chat history even after trimming.");
-             }
-           }
-        } else {
-           // Strip audio data if we have few messages but still hit the limit
-           const stripped = messages.map((msg, i) => 
-             i < messages.length - 1 ? { ...msg, audioData: null } : msg
-           );
-           try {
-             localStorage.setItem('alpha_chat_history', JSON.stringify(stripped));
-           } catch (e3) {}
+           try { localStorage.setItem('alpha_chat_history', JSON.stringify(trimmed)); } catch (e2) {}
         }
       }
     }
@@ -165,7 +135,6 @@ export default function App() {
       };
 
       recognitionRef.current.onerror = (event: any) => {
-        console.error('Speech recognition error', event.error);
         if (event.error === 'not-allowed') {
           alert('عفواً، لازم تعطي الصلاحية للميكروفون باش تنجم تتكلم مع ألفا.');
         }
@@ -212,9 +181,7 @@ export default function App() {
         audioChunksRef.current = [];
         
         mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) {
-            audioChunksRef.current.push(e.data);
-          }
+          if (e.data.size > 0) audioChunksRef.current.push(e.data);
         };
         
         mediaRecorder.onstop = () => {
@@ -232,7 +199,6 @@ export default function App() {
         mediaRecorder.start();
         setIsRecording(true);
       } catch (e: any) {
-        console.error("Error starting recording:", e);
         if (e.name === 'NotAllowedError' || e.message.includes('Permission denied')) {
           alert('عفواً، لازم تعطي الصلاحية للميكروفون باش تنجم تتكلم مع ألفا.');
         }
@@ -251,28 +217,19 @@ export default function App() {
       return;
     }
 
-    if (isRecording) {
-      stopRecording();
-    }
+    if (isRecording) stopRecording();
 
-    // Wait for the audio to finish processing if a recording was started
     let audioData = pendingAudioRef.current;
     if (!audioData && audioReadyPromiseRef.current) {
-      try {
-        audioData = await audioReadyPromiseRef.current;
-      } catch (e) {
-        console.error("Error waiting for audio:", e);
-      }
+      try { audioData = await audioReadyPromiseRef.current; } catch (e) {}
     }
 
-    // Stop any currently playing TTS audio
-    if (audioSourceRef.current) {
-      try { audioSourceRef.current.stop(); } catch(e) {}
-      setIsSpeaking(false);
-    }
+    // Stop current browser TTS if speaking
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
 
     const userMessage = input.trim();
-    const wasVoice = !!audioData; // If there's audio data, the user sent a voice message
+    const wasVoice = !!audioData; 
     
     setInput('');
     pendingAudioRef.current = null;
@@ -292,112 +249,36 @@ export default function App() {
       const allMessages = [...messages, newUserMessage];
       const validMessages = allMessages.filter(m => !m.content.includes('مشكلة صغيرة في الكونكسيون'));
       
-      const contentsForApi = validMessages.map(m => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }]
-      }));
+      const groqMessages = [
+        { role: 'system' as const, content: SYSTEM_INSTRUCTION },
+        ...validMessages.map(m => ({
+          role: m.role,
+          content: m.content
+        }))
+      ];
 
-      // 1. Get Text Response
-      const response = await aiInstance.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: contentsForApi,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.7,
-        }
+      const completion = await aiInstance.chat.completions.create({
+        messages: groqMessages,
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.7,
       });
 
-      const responseText = response.text;
+      const responseText = completion.choices[0]?.message?.content;
 
       if (responseText) {
         setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: responseText }]);
         
-        // 2. If user sent voice, reply with voice (TTS)
+        // Use Browser's native Text-to-Speech
         if (wasVoice) {
           setIsSpeaking(true);
-          try {
-            const ttsResponse = await aiInstance.models.generateContent({
-              model: "gemini-2.5-flash-preview-tts",
-              contents: [{ parts: [{ text: responseText }] }],
-              config: {
-                responseModalities: [Modality.AUDIO],
-                speechConfig: {
-                  voiceConfig: {
-                    prebuiltVoiceConfig: { voiceName: 'Charon' } // Available voices: 'Puck', 'Charon', 'Kore', 'Fenrir', 'Zephyr'
-                  }
-                }
-              }
-            });
-
-            const base64Audio = ttsResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-            if (base64Audio) {
-              // Decode raw PCM audio from Gemini TTS
-              const binaryString = atob(base64Audio);
-              const len = binaryString.length;
-              const bytes = new Uint8Array(len);
-              for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-              }
-              const int16Array = new Int16Array(bytes.buffer);
-              
-              const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-              const audioBuffer = audioContext.createBuffer(1, int16Array.length, 24000);
-              const channelData = audioBuffer.getChannelData(0);
-              for (let i = 0; i < int16Array.length; i++) {
-                channelData[i] = int16Array[i] / 32768.0;
-              }
-              
-              const source = audioContext.createBufferSource();
-              source.buffer = audioBuffer;
-              source.connect(audioContext.destination);
-              source.onended = () => setIsSpeaking(false);
-              audioSourceRef.current = source;
-              source.start();
-
-              // Convert to WAV for saving in chat history
-              const wavBuffer = new ArrayBuffer(44 + int16Array.length * 2);
-              const view = new DataView(wavBuffer);
-              const writeString = (view: DataView, offset: number, string: string) => {
-                for (let i = 0; i < string.length; i++) {
-                  view.setUint8(offset + i, string.charCodeAt(i));
-                }
-              };
-              writeString(view, 0, 'RIFF');
-              view.setUint32(4, 36 + int16Array.length * 2, true);
-              writeString(view, 8, 'WAVE');
-              writeString(view, 12, 'fmt ');
-              view.setUint32(16, 16, true);
-              view.setUint16(20, 1, true);
-              view.setUint16(22, 1, true);
-              view.setUint32(24, 24000, true);
-              view.setUint32(28, 24000 * 2, true);
-              view.setUint16(32, 2, true);
-              view.setUint16(34, 16, true);
-              writeString(view, 36, 'data');
-              view.setUint32(40, int16Array.length * 2, true);
-              let offset = 44;
-              for (let i = 0; i < int16Array.length; i++, offset += 2) {
-                view.setInt16(offset, int16Array[i], true);
-              }
-              const wavBlob = new Blob([view], { type: 'audio/wav' });
-              const reader = new FileReader();
-              reader.readAsDataURL(wavBlob);
-              reader.onloadend = () => {
-                const base64Wav = reader.result as string;
-                setMessages(prev => {
-                  const newMsgs = [...prev];
-                  newMsgs[newMsgs.length - 1].audioData = base64Wav;
-                  return newMsgs;
-                });
-              };
-
-            } else {
-              setIsSpeaking(false);
-            }
-          } catch (ttsError) {
-            console.error("TTS Error:", ttsError);
-            setIsSpeaking(false);
-          }
+          const utterance = new SpeechSynthesisUtterance(responseText);
+          utterance.lang = 'ar-SA'; // Best fallback for Arabic support in most browsers
+          utterance.rate = 0.9; // Slightly slower to sound more natural
+          
+          utterance.onend = () => setIsSpeaking(false);
+          utterance.onerror = () => setIsSpeaking(false);
+          
+          window.speechSynthesis.speak(utterance);
         }
       } else {
         throw new Error("Empty response");
@@ -416,10 +297,8 @@ export default function App() {
     setMessages([INITIAL_MESSAGE]);
     localStorage.removeItem('alpha_chat_history');
     setShowClearModal(false);
-    if (audioSourceRef.current) {
-      try { audioSourceRef.current.stop(); } catch(e) {}
-      setIsSpeaking(false);
-    }
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
   };
 
   if (!isInitialized) return null;
@@ -432,19 +311,14 @@ export default function App() {
           50% { height: 8px; width: 12px; border-radius: 12px; }
           25%, 75% { height: 5px; width: 14px; border-radius: 11px; }
         }
-        .animate-talk {
-          animation: talk 0.2s infinite;
-        }
+        .animate-talk { animation: talk 0.2s infinite; }
         @keyframes blink {
           0%, 96%, 98% { transform: scaleY(1); }
           97% { transform: scaleY(0.1); }
         }
-        .animate-blink {
-          animation: blink 4s infinite;
-        }
+        .animate-blink { animation: blink 4s infinite; }
       `}</style>
       <div className="fixed inset-0 bg-gradient-to-br from-rose-100 via-rose-50 to-pink-100 flex items-center justify-center font-sans overflow-hidden" dir="rtl">
-        
         <div className="flex flex-col w-full h-full max-w-[450px] bg-rose-50 sm:h-[92vh] sm:rounded-[2.5rem] sm:shadow-2xl sm:border-[8px] sm:border-white sm:my-4 overflow-hidden relative">
           
           <header className="bg-rose-600 text-white p-4 shadow-md flex items-center justify-between z-10 shrink-0">
@@ -458,18 +332,10 @@ export default function App() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setShowSettings(true)}
-                className="text-rose-200 hover:text-white transition-colors p-2"
-                title="الإعدادات"
-              >
+              <button onClick={() => setShowSettings(true)} className="text-rose-200 hover:text-white transition-colors p-2" title="الإعدادات">
                 <Settings size={24} />
               </button>
-              <button 
-                onClick={() => setShowClearModal(true)}
-                className="text-rose-200 hover:text-white transition-colors p-2"
-                title="فسخ المحادثة"
-              >
+              <button onClick={() => setShowClearModal(true)} className="text-rose-200 hover:text-white transition-colors p-2" title="فسخ المحادثة">
                 <Trash2 size={24} />
               </button>
             </div>
@@ -477,19 +343,9 @@ export default function App() {
 
           <main className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#fff9fa]">
             {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[85%] sm:max-w-[80%] rounded-2xl p-4 shadow-sm ${
-                    msg.role === 'user'
-                      ? 'bg-rose-500 text-white rounded-tl-none'
-                      : 'bg-white text-gray-800 rounded-tr-none border border-rose-100'
-                  }`}
-                >
+              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[85%] sm:max-w-[80%] rounded-2xl p-4 shadow-sm ${msg.role === 'user' ? 'bg-rose-500 text-white rounded-tl-none' : 'bg-white text-gray-800 rounded-tr-none border border-rose-100'}`}>
                   <p className="text-[1.1rem] leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                  
                   {msg.audioData && (
                     <div className="mt-3 pt-3 border-t border-rose-400/30">
                       <audio controls src={msg.audioData} className="h-10 w-full max-w-[250px]" />
@@ -512,39 +368,18 @@ export default function App() {
           <footer className="bg-white p-3 border-t border-rose-100 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] shrink-0 sm:rounded-b-[2rem]">
             <form onSubmit={handleSend} className="w-full flex gap-2 items-center">
               {speechSupported && (
-                <button
-                  type="button"
-                  onClick={toggleRecording}
-                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all shadow-sm shrink-0 ${
-                    isRecording 
-                      ? 'bg-red-500 text-white animate-pulse shadow-red-200 shadow-lg' 
-                      : 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100'
-                  }`}
-                  title={isRecording ? "حبّس التسجيل" : "سجّل صوتك"}
-                >
+                <button type="button" onClick={toggleRecording} className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all shadow-sm shrink-0 ${isRecording ? 'bg-red-500 text-white animate-pulse shadow-red-200 shadow-lg' : 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100'}`}>
                   {isRecording ? <MicOff size={22} /> : <Mic size={22} />}
                 </button>
               )}
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={isRecording ? "قاعد نسمع فيك..." : "أكتب ميساج لألفا..."}
-                className="flex-1 bg-gray-50 border border-rose-200 rounded-full px-5 py-3 text-[1rem] focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all"
-                disabled={isLoading}
-              />
-              <button
-                type="submit"
-                disabled={!input.trim() || isLoading}
-                className="bg-rose-600 text-white rounded-full w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md shrink-0"
-              >
+              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "قاعد نسمع فيك..." : "أكتب ميساج لألفا..."} className="flex-1 bg-gray-50 border border-rose-200 rounded-full px-5 py-3 text-[1rem] focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all" disabled={isLoading} />
+              <button type="submit" disabled={!input.trim() || isLoading} className="bg-rose-600 text-white rounded-full w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md shrink-0">
                 <Send size={22} className="-scale-x-100" />
               </button>
             </form>
           </footer>
         </div>
 
-        {/* Settings Modal */}
         {showSettings && (
           <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
@@ -557,29 +392,14 @@ export default function App() {
                   <X size={24} />
                 </button>
               </div>
-              
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <Key size={16} />
-                  مفتاح Gemini API
+                  مفتاح Groq API
                 </label>
-                <input
-                  type="password"
-                  value={apiKeyInput}
-                  onChange={(e) => setApiKeyInput(e.target.value)}
-                  placeholder="Paste your API key here..."
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-left text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all"
-                  dir="ltr"
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  المفتاح يتسجل في تليفونك بركا، ما يتشافش في حتى بلاصة أخرى.
-                </p>
+                <input type="password" value={apiKeyInput} onChange={(e) => setApiKeyInput(e.target.value)} placeholder="Paste your API key here..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-left text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all" dir="ltr" />
               </div>
-
-              <button 
-                onClick={saveApiKey}
-                className="w-full py-3 bg-rose-600 font-bold text-white rounded-xl hover:bg-rose-700 transition-colors shadow-md"
-              >
+              <button onClick={saveApiKey} className="w-full py-3 bg-rose-600 font-bold text-white rounded-xl hover:bg-rose-700 transition-colors shadow-md">
                 حفظ (Save)
               </button>
             </div>
@@ -592,18 +412,8 @@ export default function App() {
               <h3 className="text-xl font-bold text-gray-800 mb-3">فسخ المحادثة</h3>
               <p className="text-gray-600 mb-6 text-lg">متأكدة تحب تفسخ المحادثة وتبدا من جديد يا خالتي نجلاء؟</p>
               <div className="flex justify-end gap-3">
-                <button 
-                  onClick={() => setShowClearModal(false)}
-                  className="px-5 py-2.5 rounded-xl text-gray-600 font-medium hover:bg-gray-100 transition-colors"
-                >
-                  لا، بطلت
-                </button>
-                <button 
-                  onClick={confirmClearHistory}
-                  className="px-5 py-2.5 bg-rose-600 font-medium text-white rounded-xl hover:bg-rose-700 transition-colors shadow-md"
-                >
-                  إي، فسخ
-                </button>
+                <button onClick={() => setShowClearModal(false)} className="px-5 py-2.5 rounded-xl text-gray-600 font-medium hover:bg-gray-100 transition-colors">لا، بطلت</button>
+                <button onClick={confirmClearHistory} className="px-5 py-2.5 bg-rose-600 font-medium text-white rounded-xl hover:bg-rose-700 transition-colors shadow-md">إي، فسخ</button>
               </div>
             </div>
           </div>
