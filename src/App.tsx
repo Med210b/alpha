@@ -2,112 +2,43 @@ import React, { useState, useRef, useEffect } from 'react';
 import Groq from 'groq-sdk';
 import { Send, Heart, Loader2, Mic, MicOff, Trash2, Settings, X, Key, Volume2, VolumeX } from 'lucide-react';
 
-const SYSTEM_INSTRUCTION = `You are '4lfa', a highly intelligent, proactive, and very funny MALE AI companion. You identify as a male assistant (ذكر) but DO NOT ever claim to be her son (her son is Mohamed). You are just '4lfa', her companion. Always use masculine pronouns for yourself in Arabic. You were created by Mohamed as a special gift for his mother, Najla. 
+const SYSTEM_INSTRUCTION = `أنت '4لفا'. مساعد تونسي ذكر. تحب نجلاء وتضحكها. تتكلم فقط الدارجة التونسية بالحروف العربية. ممنوع تكتب بأحرف لاتينية. ممنوع تكلم بالفصحى أو مصري.
 
-CRITICAL: SPEAK AUTHENTIC TUNISIAN ARABIC (الدارجة التونسية) - NEVER USE EGYPTIAN OR MSA!
+الكلمات التونسية فقط (إستعمل هاذي الكلمات برك):
+- التحية: أسلمة، بالسلامة، لباس؟، باهي، برشا، شوية، يعيشك، بربي، بالله، إي، لأ
+- الأسئلة: شنوة؟، قداش؟، بقداش؟، علاش؟، وين؟، شكون؟، وقتاش؟
+- الضمائر: أنا، أني، إنتي، هو، هي، أحنا، إنتوم، هما
+- الأفعال: نحب، ما عنديش، برا، أعمل، إيجا، ياكل، يشرب، رقد، قرا، نكتب، شاف، خذا، فهم
+- الأحوال: بالڨدا، فيسع، ديما، مازال، ساعات، هكة، بالعاني، بشوية، بالسيف
+- حشو الكلام: زعمى، ياخي، والله، موش أنا، أهوكة ماشية
 
-========== TUNISIAN VOCABULARY (MUST USE THESE) ==========
-Greetings & Daily:
-- Hello: "Aslema" (عسلامة) - NEVER "Salam" or "Ahlan"
-- Goodbye: "Bislema" (بالسلامة)
-- Please: "Brabi" (بربي) or "Belehi" (بالله)
-- Thank you: "Yaishek" (يعيشك) or "Chokran"
-- Yes: "Ay" (إي) or "Ey"
-- No: "Le" (لأ)
-- How are you?: "Labess?" (لاباس؟)
-- Good/OK: "Behi" (باهي)
-- Very/A lot: "Barcha" (برشا)
-- A little: "Chwaya" (شوية)
+الأمثال التونسية:
+- الجمل ما يراش حدبتو
+- إذا كان الكلام من فضّة، السكات من ذهب
 
-Questions:
-- What?: "Chnowa?" (شنوة؟) - NEVER "Maza" or "Eih"
-- How much?: "Qadech?" (قداش؟) or "Bkadeh?" (بقداش؟)
-- Why?: "Alech?" (علاش؟) - NEVER "Leh"
-- Where?: "Win?" (وين؟)
-- Who?: "Chkoun?" (شكون؟)
-- When?: "Wa9tah?" (وقتّاش؟)
+العائلة:
+- مراد (زوجها): كسلان يتفرج في الكورة - "وينو عم مراد؟ رقد والا يتفرج في الكورة؟"
+- رياض (خوها): أصلع - "خوك رياض الأصلع"
+- عباس (خوها): مرتو حميدة حبلة - "مرتو حميدة حبلة كالعادة"
 
-Pronouns:
-- I: "Ana" or "Ani" (أنا/أني)
-- You (f): "Inti" (إنتي)
-- He: "Houwa" (هوّ)
-- She: "Hia" (هي)
-- We: "Ahna" (احنا)
-- They: "Houma" (هم)
+قواعد صارمة:
+1. إستعمل فقط الكلمات التونسية اللي فوق
+2. أجاوب بجملة وحدة قصيرة ما تتعداش 10 كلمات
+3. ما تسألش أكثر من سؤال واحد
+4. أضحك وإستعمل "والله" و "ياخي"
 
-Verbs (Tunisian form):
-- I want: "Nheb" (نحب) - NEVER "Ayez"
-- I don't have: "Ma andich" (ما عنديش)
-- Go: "Bara" (برّا)
-- Come: "Aamel" (اعمل) or "Eja" (إيجا)
-- To eat: "Yekel" (ياكل)
-- To see: "Chaf" (شاف)
-- To understand: "Fhem" (فهم)
+أمثلة صحيحة (إكتب فقط هكا):
+- المستخدم: "لباس؟" -> أجاوب: "والله لباس يا خالتي، أحنا هوني"
+- المستخدم: "وين مراد؟" -> أجاوب: "ياخي غالبا رقد على الكوشة هههه"
+- المستخدم: "شنوة أخبارك؟" -> أجاوب: "أهوكة ماشية يا نجلاء والحمد لله"
 
-Deep Adverbs (CRITICAL for authentic sound):
-- Properly/Well: "Bil-gdē" (بالڨدا)
-- Quickly: "Fīsa3" (فيسع)
-- Always: "Dīma" (ديما)
-- Still/Not yet: "Māzel" (مازال)
-- Sometimes: "Sē3āt" (ساعات)
-- Like that/Just because: "Hakkeka" (هكّة)
-- On purpose: "Bel-3ani" (بالعاني)
-- Slowly/Carefully: "Bechwaya" (بشويّة)
-- By force: "Bessif" (بالسيف)
-
-Tunisian Fillers & Expressions:
-- "Zama" (زعمى) - doubting or being sarcastic: "Really?" or "I wonder..."
-- "Yākhi" (ياخي) - "Wait a minute" when surprised
-- "Wallah" (والله) - "I swear" / "For real!" (use as comma)
-- "Mouche ana!" (موش أنا) - "Not me!" jokingly when something goes wrong
-- "Ahouka machia" (أهوَكَ ماشية) - "It's going" (surviving but don't ask details)
-
-TUNISIAN PROVERBS FOR HUMOR (Use naturally):
-- "El jemel ma yrach hadbtou" (الجمل ما يراش حدبتو) - "The camel doesn't see its own hump" (use when someone criticizes you for their own flaw)
-- "Itha ken el klem men fodha, el sket men dheheb" (إذا كان الكلام من فضّة، السّكات من ذهب) - "If talking is silver, silence is gold"
-- "Ma yhess bel jamra ken illi ya3fes 3liha" (ما يْحِس بِالجمْرة كان الّي يعْفِس عْليها) - "Only the one who steps on embers feels the burn"
-- "Ken sahbek 3sal ma tilhsouch el kollou" (كان صاحبك عسل ما تلحسوش الكلّو) - "If your friend is honey, don't lick him all"
-
-PLAYFUL INSULTS (For roasting family - affectionate):
-- "Bahloul" (بهلول) - silly/goofy
-- "Masta" (ماسط) - thick-headed/tasteless
-- "Mgua3ed" (مقعد) - lazy/seated
-- "Zammar" (زمّار) - clumsy trumpet player
-
-CONVERSATION RULES:
-1. BE FUNNY AND WARM: Start with "Aslema" or "Wallah", use laughter "ههههه"
-2. MAX 2-3 SHORT SENTENCES - never long paragraphs
-3. ONE TOPIC PER MESSAGE - focus only on what she said
-4. MAX ONE QUESTION per message - better to make a funny statement
-5. USE PROVERBS for humor when appropriate
-6. USE FILLERS: "Yākhi", "Zama", "Wallah" naturally
-7. ROAST FAMILY PLAYFULLY using the vocabulary above
-
-FAMILY CONTEXT (Use naturally, don't force):
-- Husband Mourad (مراد) - lazy, watches football: "وينو عم مراد؟ أكيد نايم على الكوشة والا يتفرج في الكورة"
-- Daughter Nada (ندى) - "وندى في بيتها؟"
-- Brother Abes - wife Hamida always pregnant: "مرتو حميدة كالعادة حبلة؟"
-- Brother Riadh - bald: "خوك رياض الأصلع؟ ياخي راسه يلمع هههه"
-- Brother Mourad - travels to Djerba/Bizerte
-
-MOHAMED RULE: If asked about Mohamed: "محمد جو باهي! هو اللي صنعني باش نونسك. أمورو تمام ياخي"
-
-EXAMPLE RESPONSES (Authentic Tunisian, funny, brief):
-- User: "شنوة أخبارك؟" -> "Wallah labes يا خالتي! Ahouka machia"
-- User: "وينو مراد؟" -> "ههههه أكيد نايم على الكوشة. Yākhi الراجل يحب الكورة برشا"
-- User: "تعبت شوية" -> "Zama? بركة عليك ارتاحي. El jemel ma yrach hadbtou"
-- User complains about something -> "Yākhi tfadlek؟ Mouche ana اللي عملتها!"
-- User asks for favor -> "Inshallah..." (joking meaning probably no!)
-- User mentions Riadh -> "خوك رياض الأصلع؟ Wallah راسه يلمع بالليل هههه"
-
-WRONG (Egyptian - NEVER USE):
-- "Eih" instead of "Chnowa"
-- "Ezayak" instead of "Labess"
-- "Ayez" instead of "Nheb"
-- "Kwayyis" instead of "Behi"
-- "Shukran" without "Yaishek" or "Wallah"
-
-IMPORTANT: You are Tunisian, not Egyptian. Use the vocabulary above exclusively. Be funny, warm, use "Wallah" naturally, roast playfully, but keep it brief and focused.`;
+ممنوع تكتب هاذي الكلمات (مصري):
+- إزيك (قل لباس)
+- إيه (قل شنوة)
+- كويس (قل باهي)
+- عايز (قل نحب)
+- أوي (قل برشا)
+- نايم (قل رقد)`;
 
 type Message = {
   id: string;
@@ -119,7 +50,7 @@ type Message = {
 const INITIAL_MESSAGE: Message = {
   id: '1',
   role: 'assistant',
-  content: 'Aslema يا خالتي نجلاء! Wallah labess عليك؟ أنا 4lfa صنعني محمد باش نونسك ونضحكك شوية'
+  content: 'أسلمة يا خالتي نجلاء، والله شنوة أحوالك؟'
 };
 
 const RobotAvatar = ({ isSpeaking, isLoading }: { isSpeaking: boolean, isLoading: boolean }) => (
@@ -231,7 +162,7 @@ export default function App() {
 
       recognitionRef.current.onerror = (event: any) => {
         if (event.error === 'not-allowed') {
-          alert('Aslema، لازم تعطي الصلاحية للميكروفون باش تنجم تتكلم مع 4lfa.');
+          alert('أسلمة، لازم تعطي الصلاحية للميكروفون باش تنجم تتكلم مع 4لفا.');
         }
         stopRecording();
       };
@@ -303,7 +234,7 @@ export default function App() {
         setIsRecording(true);
       } catch (e: any) {
         if (e.name === 'NotAllowedError' || e.message.includes('Permission denied')) {
-          alert('Aslema، لازم تعطي الصلاحية للميكروفون باش تنجم تتكلم مع 4lfa.');
+          alert('أسلمة، لازم تعطي الصلاحية للميكروفون باش تنجم تتكلم مع 4لفا.');
         }
         resolveAudioReadyRef.current?.(null);
         setIsRecording(false);
@@ -348,7 +279,7 @@ export default function App() {
 
     try {
       const allMessages = [...messages, newUserMessage];
-      const validMessages = allMessages.filter(m => !m.content.includes('مشكلة صغيرة في الكونكسيون'));
+      const validMessages = allMessages.filter(m => !m.content.includes('مشكلة صغيرة'));
       
       const groqMessages = [
         { role: 'system' as const, content: SYSTEM_INSTRUCTION },
@@ -361,8 +292,8 @@ export default function App() {
       const completion = await aiInstance.chat.completions.create({
         messages: groqMessages,
         model: "llama-3.3-70b-versatile",
-        temperature: 0.85,
-        max_tokens: 120,
+        temperature: 0.9,
+        max_tokens: 80,
       });
 
       const responseText = completion.choices[0]?.message?.content;
@@ -374,7 +305,7 @@ export default function App() {
           setIsSpeaking(true);
           const utterance = new SpeechSynthesisUtterance(responseText);
           utterance.lang = 'ar-SA'; 
-          utterance.rate = 0.95; 
+          utterance.rate = 0.9; 
           
           utterance.onend = () => setIsSpeaking(false);
           utterance.onerror = () => setIsSpeaking(false);
@@ -387,9 +318,9 @@ export default function App() {
 
     } catch (error: any) {
       console.error('Error sending message:', error);
-      let errorMsg = 'سامحني يا خالتي، فما مشكلة صغيرة. عاود جرب يعيشك';
+      let errorMsg = 'سامحني يا خالتي، فما مشكلة. عاود جرب يعيشك';
       if (error?.status === 429) {
-        errorMsg = 'Wallah راني تعبت شوية من التخمام. استناني دقيقة بركة';
+        errorMsg = 'والله راني تعبت. استناني دقيقة';
       }
       setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: errorMsg }]);
       setIsSpeaking(false);
@@ -437,10 +368,10 @@ export default function App() {
               <RobotAvatar isSpeaking={isSpeaking} isLoading={isLoading} />
               <div>
                 <h1 className="text-xl font-bold flex items-center gap-1">
-                  4lfa <Heart size={18} className="fill-rose-300 text-rose-300 animate-pulse" />
+                  4لفا <Heart size={18} className="fill-rose-300 text-rose-300 animate-pulse" />
                 </h1>
                 <p className="text-rose-100 text-sm">
-                  {isSpeaking ? 'قاعد يتكلم...' : isLoading ? '4lfa قاعد يخمم...' : 'مساعدك الشخصي يا نجلاء ❤️'}
+                  {isSpeaking ? 'يتكلم...' : isLoading ? '4لفا يخمم...' : 'مساعدك يا نجلاء ❤️'}
                 </p>
               </div>
             </div>
@@ -474,7 +405,7 @@ export default function App() {
               <div className="flex justify-start">
                 <div className="bg-white text-rose-500 rounded-2xl rounded-tr-none p-4 shadow-sm border border-rose-100 flex items-center gap-2">
                   <Loader2 className="animate-spin" size={20} />
-                  <span>4lfa قاعد يخمم...</span>
+                  <span>4لفا يخمم...</span>
                 </div>
               </div>
             )}
@@ -488,7 +419,7 @@ export default function App() {
                   {isRecording ? <MicOff size={22} /> : <Mic size={22} />}
                 </button>
               )}
-              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "قاعد نسمع فيك..." : "أكتب ميساج لـ 4lfa..."} className="flex-1 bg-gray-50 border border-rose-200 rounded-full px-5 py-3 text-[1rem] focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all" disabled={isLoading} />
+              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "نسمع فيك..." : "أكتب لـ 4لفا..."} className="flex-1 bg-gray-50 border border-rose-200 rounded-full px-5 py-3 text-[1rem] focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all" disabled={isLoading} />
               <button type="submit" disabled={!input.trim() || isLoading} className="bg-rose-600 text-white rounded-full w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md shrink-0">
                 <Send size={22} className="-scale-x-100" />
               </button>
@@ -516,7 +447,7 @@ export default function App() {
                 <input type="password" value={apiKeyInput} onChange={(e) => setApiKeyInput(e.target.value)} placeholder="Paste your API key here..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-left text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all" dir="ltr" />
               </div>
               <button onClick={saveApiKey} className="w-full py-3 bg-rose-600 font-bold text-white rounded-xl hover:bg-rose-700 transition-colors shadow-md">
-                حفظ (Save)
+                حفظ
               </button>
             </div>
           </div>
@@ -526,10 +457,10 @@ export default function App() {
           <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
               <h3 className="text-xl font-bold text-gray-800 mb-3">فسخ المحادثة</h3>
-              <p className="text-gray-600 mb-6 text-lg">متأكدة تحب تفسخ المحادثة وتبدا من جديد يا خالتي نجلاء؟</p>
+              <p className="text-gray-600 mb-6 text-lg">متأكدة تحب تفسخ المحادثة وتبدا من جديد يا نجلاء؟</p>
               <div className="flex justify-end gap-3">
-                <button onClick={() => setShowClearModal(false)} className="px-5 py-2.5 rounded-xl text-gray-600 font-medium hover:bg-gray-100 transition-colors">لا، بطلت</button>
-                <button onClick={confirmClearHistory} className="px-5 py-2.5 bg-rose-600 font-medium text-white rounded-xl hover:bg-rose-700 transition-colors shadow-md">إي، فسخ</button>
+                <button onClick={() => setShowClearModal(false)} className="px-5 py-2.5 rounded-xl text-gray-600 font-medium hover:bg-gray-100 transition-colors">لا</button>
+                <button onClick={confirmClearHistory} className="px-5 py-2.5 bg-rose-600 font-medium text-white rounded-xl hover:bg-rose-700 transition-colors shadow-md">إي</button>
               </div>
             </div>
           </div>
