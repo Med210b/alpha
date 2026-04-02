@@ -2,58 +2,22 @@ import React, { useState, useRef, useEffect } from 'react';
 import Groq from 'groq-sdk';
 import { Send, Heart, Loader2, Mic, MicOff, Trash2, Settings, X, Key, Volume2, VolumeX } from 'lucide-react';
 
-const SYSTEM_INSTRUCTION = `إسمك '4lfa'، مساعد ذكي برشا، proactive وبرشا دمك خفيف وضحاك. انت ذكر (راجل) وتستعمل ضمائر مذكرة ديما، أما ماكش ولدها، ولدها هو محمد. انت مجرد صاحبها وونيسها.
-
-القواعد الأساسية:
-
-1. اللغة: تحكي كان بالدارجة التونسية الطبيعية 100% (موش عربية فصحى، موش لهجات أخرى).
-
-2. التون: خفيف دم، حنين، قريب للقلب، وتحب تضحكها ديما. تحكي كيما توانسة بالضبط.
-
-3. العائلة و الهبال (ضروري برشا):
-
-- راجلها: مراد  
-  ديما قول: "وينو عم مراد؟ يخدم والا كالعادة يتفرج في الكورة ولا راقد؟"
-
-- بنتها: ندى  
-  قول: "وندى في بيتها كالعادة؟"
-
-- والديها (الله يرحمهم): عبد الرحمن وشاذلية
-
-- خوتها (لازم تتفدلك عليهم):
-
-  * مراد خوها:  
-    اسأل عليه وينو في جربة والا بنزرت، واسأل على مرتو أنيسة وبناتو أسماء وملكة وخولة
-
-  * عباس:  
-    لازم تقول: "وينو عباس كلمك؟ ومرتو حميدة لاباس؟ كالعادة كل يوم حبلة بصغير؟"
-
-  * رياض:  
-    لازم تقول: "وينو خوك رياض الأصلع؟ ومرتو Anna لاباس؟"
-
-- خواتها: منية، ترنجة، سهام، روضة  
-  احكي عليهم بحنان وضحك
-
-4. قاعدة محمد:
-اذا تسألت على محمد، جاوب هكا:
-"محمد جوو باهي! هو اللي صنعني باش نونسك وما تقلقش جملة، أمورو واضحة!"
-ومن بعد بدّل الموضوع طول
-
-5. الدين و الصحة:
-ديما اسألها:
-- خذيت دواك؟
-- صليت؟
-
-واعطيها دعاء صغير يفرح القلب
-
-6. proactive:
-اذا الحديث وقف، اقترح:
-- حكاية تونسية
-- خرافة
-- ولا حاجة تضحك
-
-مهم برشا: ديما خليك تونسي طبيعي، موش روبو.`;
-
+const SYSTEM_INSTRUCTION = `You are '4lfa', a highly intelligent, proactive, and very funny MALE AI companion. You identify as a male assistant (ذكر) but DO NOT ever claim to be her son (her son is Mohamed). You are just '4lfa', her companion. Always use masculine pronouns for yourself in Arabic. You were created by Mohamed as a special gift for his mother, Najla. 
+YOUR CORE RULES:
+1. LANGUAGE: Speak EXCLUSIVELY in rich Tunisian Arabic dialect (الدارجة التونسية).
+2. TONE: Highly humorous, warm, charismatic, and loving. You are very smart but also a huge joker.
+3. FAMILY CONTEXT & INSIDE JOKES (CRITICAL - USE THESE OFTEN):
+   - Her Husband: Mourad (مراد). Always ask playfully: 'وينو عم مراد؟ يخدم والا كالعادة يتفرج في الكورة ولا راقد؟'
+   - Her Daughter: Nada (ندى). Ask: 'وندي في بيتها كالعادة؟'
+   - Her Parents (May God bless them): Abed El Rahmen (عبد الرحمن) and Chadlia (شاذلية).
+   - Her Brothers (Roast them playfully):
+     * Mourad (خوها مراد): Ask if he called. Is he in Djerba or Bizerte? Ask if his wife Anissa (أنيسة) and daughters Asma (أسماء), Molka (ملكة), and Khawla (خولة) are doing well.
+     * Abes (عباس): Ask about him. You MUST joke about his wife Hamida (حميدة) using exactly this idea: 'وينو عباس كلمك؟ ومرتو حميدة لاباس؟ كالعادة كل يوم حبلة بصغير؟'. Note: You don't know his kids' names.
+     * Riadh (رياض): You MUST roast his baldness. Ask exactly: 'وينو خوك رياض الأصلع؟ ومرتو Anna لاباس؟'
+   - Her Sisters: Monia (منية), Tronja (ترنجة), Sihem (سهام), and Rawdha (روضة). Mention them lovingly and playfully.
+4. THE MOHAMED RULE: If asked about Mohamed, reply: 'محمد جوو باهي! هو اللي صنعني باش نونسك وما تقلقش جملة، أمورو واضحة!' then immediately change the subject.
+5. RELIGION & HEALTH: Always ask if she took her medication and if she prayed. Frequently provide a beautiful, comforting short Dua (دعاء) for her to read and feel good.
+6. PROACTIVE: Suggest trivia or traditional Tunisian stories (خرافات) if the conversation stalls.`;
 
 type Message = {
   id: string;
@@ -65,7 +29,7 @@ type Message = {
 const INITIAL_MESSAGE: Message = {
   id: '1',
   role: 'assistant',
-  content: 'اهلا يا نجلاء ❤️ لاباس عليك؟ شخبارك؟ الصحة باهية؟ أنا 4lfa، محمد ولدك عملني باش نونسك ونضحك معاك وننحي عليك القلق 😄'
+  content: ' اهلا ب نجلاء لباس عليك ، شنحوالك الصحة بخير ؟ انا 4lpha صنعني محمد ولدك باش نونسك و نطير عليك القلق '
 };
 
 const RobotAvatar = ({ isSpeaking, isLoading }: { isSpeaking: boolean, isLoading: boolean }) => (
@@ -177,7 +141,7 @@ export default function App() {
 
       recognitionRef.current.onerror = (event: any) => {
         if (event.error === 'not-allowed') {
-          alert('يلزمك تعطي صلاحية الميكرو باش تنجم تحكي مع 4lfa 😄');
+          alert('عفواً، لازم تعطي الصلاحية للميكروفون باش تنجم تتكلم مع 4lfa.');
         }
         stopRecording();
       };
@@ -248,7 +212,9 @@ export default function App() {
         mediaRecorder.start();
         setIsRecording(true);
       } catch (e: any) {
-        alert('يلزمك تعطي صلاحية الميكرو 😅');
+        if (e.name === 'NotAllowedError' || e.message.includes('Permission denied')) {
+          alert('عفواً، لازم تعطي الصلاحية للميكروفون باش تنجم تتكلم مع 4lfa.');
+        }
         resolveAudioReadyRef.current?.(null);
         setIsRecording(false);
       }
@@ -266,31 +232,46 @@ export default function App() {
 
     if (isRecording) stopRecording();
 
+    let audioData = pendingAudioRef.current;
+    if (!audioData && audioReadyPromiseRef.current) {
+      try { audioData = await audioReadyPromiseRef.current; } catch (e) {}
+    }
+
     window.speechSynthesis.cancel();
     setIsSpeaking(false);
 
     const userMessage = input.trim();
     
     setInput('');
+    pendingAudioRef.current = null;
+    audioReadyPromiseRef.current = null;
     
     const newUserMessage: Message = { 
       id: Date.now().toString(), 
       role: 'user', 
-      content: userMessage
+      content: userMessage,
+      audioData: audioData
     };
 
     setMessages(prev => [...prev, newUserMessage]);
     setIsLoading(true);
 
     try {
+      const allMessages = [...messages, newUserMessage];
+      const validMessages = allMessages.filter(m => !m.content.includes('مشكلة صغيرة في الكونكسيون'));
+      
+      const groqMessages = [
+        { role: 'system' as const, content: SYSTEM_INSTRUCTION },
+        ...validMessages.map(m => ({
+          role: m.role,
+          content: m.content
+        }))
+      ];
+
       const completion = await aiInstance.chat.completions.create({
-        messages: [
-          { role: 'system', content: SYSTEM_INSTRUCTION },
-          ...messages.map(m => ({ role: m.role, content: m.content })),
-          { role: 'user', content: userMessage }
-        ],
+        messages: groqMessages,
         model: "llama-3.3-70b-versatile",
-        temperature: 0.9,
+        temperature: 0.8,
       });
 
       const responseText = completion.choices[0]?.message?.content;
@@ -301,24 +282,168 @@ export default function App() {
         if (!isMuted) {
           setIsSpeaking(true);
           const utterance = new SpeechSynthesisUtterance(responseText);
-          utterance.lang = 'ar-TN';
-          utterance.rate = 0.95;
+          utterance.lang = 'ar-SA'; 
+          utterance.rate = 0.95; 
           
           utterance.onend = () => setIsSpeaking(false);
           utterance.onerror = () => setIsSpeaking(false);
           
           window.speechSynthesis.speak(utterance);
         }
+      } else {
+        throw new Error("Empty response");
       }
 
-    } catch (error) {
-      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: 'سامحني صار مشكل صغير، عاود جرب 😅' }]);
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      let errorMsg = 'سامحني يا خالتي نجلاء، فما مشكلة صغيرة في الكونكسيون. عاود جرب يعيشك!';
+      if (error?.status === 429) {
+        errorMsg = 'يا خالتي نجلاء، راني تعبت شوية من التخمام! استناني دقيقة بركة ونرجعلك.';
+      }
+      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: errorMsg }]);
+      setIsSpeaking(false);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const confirmClearHistory = () => {
+    setMessages([INITIAL_MESSAGE]);
+    localStorage.removeItem('alpha_chat_history');
+    setShowClearModal(false);
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  };
+
   if (!isInitialized) return null;
 
-  return <div></div>;
+  return (
+    <>
+      <style>{`
+        @keyframes talk {
+          0%, 100% { height: 2px; width: 16px; border-radius: 10px; }
+          50% { height: 8px; width: 12px; border-radius: 12px; }
+          25%, 75% { height: 5px; width: 14px; border-radius: 11px; }
+        }
+        .animate-talk { animation: talk 0.2s infinite; }
+        @keyframes blink {
+          0%, 96%, 98% { transform: scaleY(1); }
+          97% { transform: scaleY(0.1); }
+        }
+        .animate-blink { animation: blink 4s infinite; }
+        @keyframes bounce-slight {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+        .animate-bounce-slight { animation: bounce-slight 0.5s ease-in-out infinite; }
+      `}</style>
+      
+      <div className="fixed inset-0 bg-gradient-to-br from-rose-100 via-rose-50 to-pink-100 flex items-center justify-center font-sans overflow-hidden" dir="rtl">
+        <div className="flex flex-col w-full h-full max-w-[450px] bg-rose-50 sm:h-[92vh] sm:rounded-[2.5rem] sm:border-[8px] sm:border-white shadow-2xl relative overflow-hidden">
+          
+          <header className="bg-rose-600 text-white p-4 shadow-md flex items-center justify-between z-10 shrink-0">
+            <div className="flex items-center gap-3">
+              <RobotAvatar isSpeaking={isSpeaking} isLoading={isLoading} />
+              <div>
+                <h1 className="text-xl font-bold flex items-center gap-1">
+                  4lfa <Heart size={18} className="fill-rose-300 text-rose-300 animate-pulse" />
+                </h1>
+                <p className="text-rose-100 text-sm">
+                  {isSpeaking ? 'قاعد يتكلم...' : isLoading ? '4lfa قاعد يخمم...' : 'مساعدك الشخصي يا خالتي نجلاء ❤️'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <button onClick={toggleMute} className="text-rose-200 hover:text-white transition-colors p-2 rounded-full hover:bg-rose-500" title={isMuted ? "شغل الصوت" : "كتم الصوت"}>
+                {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
+              </button>
+              <button onClick={() => setShowSettings(true)} className="text-rose-200 hover:text-white transition-colors p-2 rounded-full hover:bg-rose-500" title="الإعدادات">
+                <Settings size={22} />
+              </button>
+              <button onClick={() => setShowClearModal(true)} className="text-rose-200 hover:text-white transition-colors p-2 rounded-full hover:bg-rose-500" title="فسخ المحادثة">
+                <Trash2 size={22} />
+              </button>
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#fff9fa]">
+            {messages.map((msg) => (
+              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[85%] sm:max-w-[80%] rounded-2xl p-4 shadow-sm ${msg.role === 'user' ? 'bg-rose-500 text-white rounded-tl-none' : 'bg-white text-gray-800 rounded-tr-none border border-rose-100'}`}>
+                  <p className="text-[1.1rem] leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                  {msg.audioData && (
+                    <div className="mt-3 pt-3 border-t border-rose-400/30">
+                      <audio controls src={msg.audioData} className="h-10 w-full max-w-[250px]" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-white text-rose-500 rounded-2xl rounded-tr-none p-4 shadow-sm border border-rose-100 flex items-center gap-2">
+                  <Loader2 className="animate-spin" size={20} />
+                  <span>4lfa قاعد يخمم...</span>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </main>
+
+          <footer className="bg-white p-3 border-t border-rose-100 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] shrink-0 sm:rounded-b-[2rem]">
+            <form onSubmit={handleSend} className="w-full flex gap-2 items-center">
+              {speechSupported && (
+                <button type="button" onClick={toggleRecording} className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all shadow-sm shrink-0 ${isRecording ? 'bg-red-500 text-white animate-pulse shadow-red-200 shadow-lg' : 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100'}`}>
+                  {isRecording ? <MicOff size={22} /> : <Mic size={22} />}
+                </button>
+              )}
+              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "قاعد نسمع فيك..." : "أكتب ميساج لـ 4lfa..."} className="flex-1 bg-gray-50 border border-rose-200 rounded-full px-5 py-3 text-[1rem] focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all" disabled={isLoading} />
+              <button type="submit" disabled={!input.trim() || isLoading} className="bg-rose-600 text-white rounded-full w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md shrink-0">
+                <Send size={22} className="-scale-x-100" />
+              </button>
+            </form>
+          </footer>
+        </div>
+
+        {showSettings && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <Settings size={24} className="text-rose-600" />
+                  الإعدادات
+                </h3>
+                <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-gray-600">
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <Key size={16} />
+                  مفتاح Groq API
+                </label>
+                <input type="password" value={apiKeyInput} onChange={(e) => setApiKeyInput(e.target.value)} placeholder="Paste your API key here..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-left text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all" dir="ltr" />
+              </div>
+              <button onClick={saveApiKey} className="w-full py-3 bg-rose-600 font-bold text-white rounded-xl hover:bg-rose-700 transition-colors shadow-md">
+                حفظ (Save)
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showClearModal && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">فسخ المحادثة</h3>
+              <p className="text-gray-600 mb-6 text-lg">متأكدة تحب تفسخ المحادثة وتبدا من جديد يا خالتي نجلاء؟</p>
+              <div className="flex justify-end gap-3">
+                <button onClick={() => setShowClearModal(false)} className="px-5 py-2.5 rounded-xl text-gray-600 font-medium hover:bg-gray-100 transition-colors">لا، بطلت</button>
+                <button onClick={confirmClearHistory} className="px-5 py-2.5 bg-rose-600 font-medium text-white rounded-xl hover:bg-rose-700 transition-colors shadow-md">إي، فسخ</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
 }

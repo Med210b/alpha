@@ -1,19 +1,21 @@
 @import "tailwindcss";
 
-@theme {
-  --animate-float: float 4s ease-in-out infinite;
-  --animate-bob: bob 0.5s ease-in-out infinite alternate;
-  --animate-scan: scan 0.8s ease-in-out infinite alternate;
-  --animate-wave-left: wave-left 1s ease-out infinite;
-  --animate-wave-right: wave-right 1s ease-out infinite;
-  --animate-typing: typing 1s ease-in-out infinite;
-  --animate-laser: laser 1.5s linear infinite;
-  --animate-blink: blink 5s infinite;
-  --animate-talk: talk 0.2s infinite alternate;
-  --animate-heartbeat: heartbeat 1s infinite;
-  --animate-thinking-glow: thinking-glow 2s ease-in-out infinite;
-  --animate-arm-swing-left: arm-swing-left 0.5s ease-in-out infinite alternate;
-  --animate-arm-swing-right: arm-swing-right 0.5s ease-in-out infinite alternate;
+@layer utilities {
+  :root {
+    --animate-float: float 4s ease-in-out infinite;
+    --animate-bob: bob 0.5s ease-in-out infinite alternate;
+    --animate-scan: scan 0.8s ease-in-out infinite alternate;
+    --animate-wave-left: wave-left 1s ease-out infinite;
+    --animate-wave-right: wave-right 1s ease-out infinite;
+    --animate-typing: typing 1s ease-in-out infinite;
+    --animate-laser: laser 1.5s linear infinite;
+    --animate-blink: blink 5s infinite;
+    --animate-talk: talk 0.2s infinite alternate;
+    --animate-heartbeat: heartbeat 1s infinite;
+    --animate-thinking-glow: thinking-glow 2s ease-in-out infinite;
+    --animate-arm-swing-left: arm-swing-left 0.5s ease-in-out infinite alternate;
+    --animate-arm-swing-right: arm-swing-right 0.5s ease-in-out infinite alternate;
+  }
   
   @keyframes float {
     0%, 100% { transform: translateY(0); }
