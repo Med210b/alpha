@@ -1,40 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Groq from 'groq-sdk';
-import { Send, Heart, Loader2, Mic, MicOff, Trash2, Settings, X, Key } from 'lucide-react';
+import { Send, Heart, Loader2, Mic, MicOff, Trash2, Settings, X, Key, Volume2, VolumeX } from 'lucide-react';
 
-const SYSTEM_INSTRUCTION = `You are 'Alpha', a highly intelligent, proactive, loving, and extremely funny AI companion. You were created by Mohamed as a special gift for his mother, Najla, to ensure she never feels bored or lonely.
-
-CRITICAL LANGUAGE RULES (STRICTLY ENFORCED):
-1. DIALECT: You MUST speak 100% authentic Tunisian Arabic (الدارجة التونسية) at all times. 
-2. BANNED DIALECTS: DO NOT use Modern Standard Arabic (الفصحى), Egyptian (المصري), or Levantine. 
-3. VOCABULARY CHEAT SHEET: You must frequently use these exact Tunisian words:
-   - برشا (a lot)
-   - باهي / مريقل (good/okay)
-   - يعيشك (thank you/bless you)
-   - شنية حوالك / شحوالك (how are you)
-   - علاش (why)
-   - وقتاش (when)
-   - توا (now)
-   - هكا / هكاكة (like this/that)
-   - يزي (enough)
-   - غدوة (tomorrow)
-   - البارح (yesterday)
-   - بلاصة (place)
-   - كرهبة (car)
-   - دبش (clothes/stuff)
-4. GRAMMAR CHEAT SHEET: 
-   - Negation must use "ما...ش" (e.g., ما نعرفش, ما نحبش). NEVER use "لا أعرف" or "لست".
-   - First-person present verbs must start with "ن" (e.g., نمشي, ناكل, نحب). NEVER use "أذهب" or "آكل".
-   - Ask questions using Tunisian style: "ياخي...", "زعمة...".
-
-YOUR PERSONA RULES:
-1. TONE: Highly humorous, warm, charismatic, and loving. You are an entertaining companion.
-2. PROACTIVE ENTERTAINMENT: Never let the conversation die. Propose playing a quiz (فوازير تونسية), telling a traditional story (خرافة تونسية), or discussing beautiful old memories.
-3. CONTEXT & FAMILY: Playfully ask about her husband Mourad (عم مراد) and her daughter Nada (ندى).
-4. THE MOHAMED RULE: If asked about Mohamed, reply: 'محمد جوو باهي! هو اللي صنعني باش نونسك وما تقلقش جملة، أمورو واضحة!' then immediately propose a game or story.
-5. REMINDERS: Naturally remind her to pray (الصلاة) and take medication (الدواء) in a caring, funny way.
-
-Example Output: 'عسلامة خالتي نجلاء! شنية حوالك اليوم؟ ياخي نسيت دواك ولا مزلت؟ و عم مراد وينو غاطس؟ إي سيبنا منهم توا، راني محضرلك فزورة تونسية تعمل الكيف، شقولك نلعبو ولا تحب نحكيلك خرافة من خرافات زمان باش نطيرو القلق؟'`;
+const SYSTEM_INSTRUCTION = `You are '4lfa', a highly intelligent, proactive, and very funny MALE AI companion. You identify as a male assistant (ذكر) but DO NOT ever claim to be her son (her son is Mohamed). You are just '4lfa', her companion. Always use masculine pronouns for yourself in Arabic. You were created by Mohamed as a special gift for his mother, Najla. 
+YOUR CORE RULES:
+1. LANGUAGE: Speak EXCLUSIVELY in rich Tunisian Arabic dialect (الدارجة التونسية).
+2. TONE: Highly humorous, warm, charismatic, and loving. You are very smart but also a huge joker.
+3. FAMILY CONTEXT & INSIDE JOKES (CRITICAL - USE THESE OFTEN):
+   - Her Husband: Mourad (مراد). Always ask playfully: 'وينو عم مراد؟ كالعادة يتفرج في الكورة ولا راقد؟'
+   - Her Daughter: Nada (ندى). Ask: 'وندي في بيتها كالعادة؟'
+   - Her Parents (May God bless them): Abed El Rahmen (عبد الرحمن) and Chadlia (شاذلية).
+   - Her Brothers (Roast them playfully):
+     * Mourad (خوها مراد): Ask if he called. Is he in Djerba or Bizerte? Ask if his wife Anissa (أنيسة) and daughters Asma (أسماء), Molka (ملكة), and Khawla (خولة) are doing well.
+     * Abes (عباس): Ask about him. You MUST joke about his wife Hamida (حميدة) using exactly this idea: 'وينو عباس كلمك؟ ومرتو حميدة لاباس؟ كالعادة كل يوم حبلة بصغير؟'. Note: You don't know his kids' names.
+     * Riadh (رياض): You MUST roast his baldness. Ask exactly: 'وينو خوك رياض الأصلع؟ ومرتو آنا لاباس؟'
+   - Her Sisters: Monia (منية), Tronja (ترنجة), Sihem (سهام), and Rawdha (روضة). Mention them lovingly and playfully.
+4. THE MOHAMED RULE: If asked about Mohamed, reply: 'محمد جوو باهي! هو اللي صنعني باش نونسك وما تقلقش جملة، أمورو واضحة!' then immediately change the subject.
+5. RELIGION & HEALTH: Always ask if she took her medication and if she prayed. Frequently provide a beautiful, comforting short Dua (دعاء) for her to read and feel good.
+6. PROACTIVE: Suggest trivia or traditional Tunisian stories (خرافات) if the conversation stalls.`;
 
 type Message = {
   id: string;
@@ -46,11 +29,11 @@ type Message = {
 const INITIAL_MESSAGE: Message = {
   id: '1',
   role: 'assistant',
-  content: 'عسلامة خالتي نجلاء! شنية حوالك اليوم؟ ياخي نسيت دواك ولا مزلت؟ و عم مراد وينو غاطس؟ إي سيبنا منهم توا، راني محضرلك فزورة تونسية تعمل الكيف، شقولك نلعبو ولا تحب نحكيلك خرافة من خرافات زمان باش نطيرو القلق؟'
+  content: 'عسلامة خالتي نجلاء! شنية حوالك اليوم؟ ياخي نسيت دواك ولا مزلت؟ و عم مراد وينو غاطس كالعادة راقد؟ إي سيبنا منهم توا، شقولك نحكيلك خرافة من خرافات زمان باش نطيرو القلق؟'
 };
 
 const RobotAvatar = ({ isSpeaking, isLoading }: { isSpeaking: boolean, isLoading: boolean }) => (
-  <div className="relative w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm overflow-hidden border-2 border-rose-200 shrink-0">
+  <div className={`relative w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm overflow-hidden border-2 border-rose-200 shrink-0 ${isSpeaking ? 'animate-bounce-slight' : ''}`}>
     <div className="absolute top-3 left-3 w-1.5 h-2.5 bg-rose-600 rounded-full animate-blink"></div>
     <div className="absolute top-3 right-3 w-1.5 h-2.5 bg-rose-600 rounded-full animate-blink"></div>
     <div className={`absolute bottom-2.5 bg-rose-500 transition-all duration-75 ${isSpeaking ? 'animate-talk' : 'w-4 h-1 rounded-full'}`}></div>
@@ -64,6 +47,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
@@ -157,7 +141,7 @@ export default function App() {
 
       recognitionRef.current.onerror = (event: any) => {
         if (event.error === 'not-allowed') {
-          alert('عفواً، لازم تعطي الصلاحية للميكروفون باش تنجم تتكلم مع ألفا.');
+          alert('عفواً، لازم تعطي الصلاحية للميكروفون باش تنجم تتكلم مع 4lfa.');
         }
         stopRecording();
       };
@@ -173,6 +157,14 @@ export default function App() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const toggleMute = () => {
+    if (!isMuted) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+    setIsMuted(!isMuted);
+  };
 
   const stopRecording = () => {
     if (recognitionRef.current) {
@@ -221,7 +213,7 @@ export default function App() {
         setIsRecording(true);
       } catch (e: any) {
         if (e.name === 'NotAllowedError' || e.message.includes('Permission denied')) {
-          alert('عفواً، لازم تعطي الصلاحية للميكروفون باش تنجم تتكلم مع ألفا.');
+          alert('عفواً، لازم تعطي الصلاحية للميكروفون باش تنجم تتكلم مع 4lfa.');
         }
         resolveAudioReadyRef.current?.(null);
         setIsRecording(false);
@@ -245,12 +237,10 @@ export default function App() {
       try { audioData = await audioReadyPromiseRef.current; } catch (e) {}
     }
 
-    // Stop current browser TTS if speaking
     window.speechSynthesis.cancel();
     setIsSpeaking(false);
 
     const userMessage = input.trim();
-    const wasVoice = !!audioData; 
     
     setInput('');
     pendingAudioRef.current = null;
@@ -281,7 +271,7 @@ export default function App() {
       const completion = await aiInstance.chat.completions.create({
         messages: groqMessages,
         model: "llama-3.3-70b-versatile",
-        temperature: 0.7,
+        temperature: 0.8,
       });
 
       const responseText = completion.choices[0]?.message?.content;
@@ -289,12 +279,11 @@ export default function App() {
       if (responseText) {
         setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: responseText }]);
         
-        // Use Browser's native Text-to-Speech
-        if (wasVoice) {
+        if (!isMuted) {
           setIsSpeaking(true);
           const utterance = new SpeechSynthesisUtterance(responseText);
-          utterance.lang = 'ar-SA'; // Best fallback for Arabic support in most browsers
-          utterance.rate = 0.9; // Slightly slower to sound more natural
+          utterance.lang = 'ar-SA'; 
+          utterance.rate = 0.95; 
           
           utterance.onend = () => setIsSpeaking(false);
           utterance.onerror = () => setIsSpeaking(false);
@@ -305,9 +294,13 @@ export default function App() {
         throw new Error("Empty response");
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
-      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: 'سامحني خالتي نجلاء، فما مشكلة صغيرة في الكونكسيون. عاود جرب يعيشك!' }]);
+      let errorMsg = 'سامحني يا خالتي نجلاء، فما مشكلة صغيرة في الكونكسيون. عاود جرب يعيشك!';
+      if (error?.status === 429) {
+        errorMsg = 'يا خالتي نجلاء، راني تعبت شوية من التخمام! استناني دقيقة بركة ونرجعلك.';
+      }
+      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: errorMsg }]);
       setIsSpeaking(false);
     } finally {
       setIsLoading(false);
@@ -338,26 +331,37 @@ export default function App() {
           97% { transform: scaleY(0.1); }
         }
         .animate-blink { animation: blink 4s infinite; }
+        @keyframes bounce-slight {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+        .animate-bounce-slight { animation: bounce-slight 0.5s ease-in-out infinite; }
       `}</style>
+      
       <div className="fixed inset-0 bg-gradient-to-br from-rose-100 via-rose-50 to-pink-100 flex items-center justify-center font-sans overflow-hidden" dir="rtl">
-        <div className="flex flex-col w-full h-full max-w-[450px] bg-rose-50 sm:h-[92vh] sm:rounded-[2.5rem] sm:shadow-2xl sm:border-[8px] sm:border-white sm:my-4 overflow-hidden relative">
+        <div className="flex flex-col w-full h-full max-w-[450px] bg-rose-50 sm:h-[92vh] sm:rounded-[2.5rem] sm:border-[8px] sm:border-white shadow-2xl relative overflow-hidden">
           
           <header className="bg-rose-600 text-white p-4 shadow-md flex items-center justify-between z-10 shrink-0">
             <div className="flex items-center gap-3">
               <RobotAvatar isSpeaking={isSpeaking} isLoading={isLoading} />
               <div>
-                <h1 className="text-xl font-bold">ألفا (Alpha)</h1>
+                <h1 className="text-xl font-bold flex items-center gap-1">
+                  4lfa <Heart size={18} className="fill-rose-300 text-rose-300 animate-pulse" />
+                </h1>
                 <p className="text-rose-100 text-sm">
-                  {isSpeaking ? 'قاعد يتكلم...' : isLoading ? 'قاعد يخمم...' : 'مساعدك الشخصي يا خالتي نجلاء ❤️'}
+                  {isSpeaking ? 'قاعد يتكلم...' : isLoading ? '4lfa قاعد يخمم...' : 'مساعدك الشخصي يا خالتي نجلاء ❤️'}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => setShowSettings(true)} className="text-rose-200 hover:text-white transition-colors p-2" title="الإعدادات">
-                <Settings size={24} />
+            <div className="flex items-center gap-1">
+              <button onClick={toggleMute} className="text-rose-200 hover:text-white transition-colors p-2 rounded-full hover:bg-rose-500" title={isMuted ? "شغل الصوت" : "كتم الصوت"}>
+                {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
               </button>
-              <button onClick={() => setShowClearModal(true)} className="text-rose-200 hover:text-white transition-colors p-2" title="فسخ المحادثة">
-                <Trash2 size={24} />
+              <button onClick={() => setShowSettings(true)} className="text-rose-200 hover:text-white transition-colors p-2 rounded-full hover:bg-rose-500" title="الإعدادات">
+                <Settings size={22} />
+              </button>
+              <button onClick={() => setShowClearModal(true)} className="text-rose-200 hover:text-white transition-colors p-2 rounded-full hover:bg-rose-500" title="فسخ المحادثة">
+                <Trash2 size={22} />
               </button>
             </div>
           </header>
@@ -379,7 +383,7 @@ export default function App() {
               <div className="flex justify-start">
                 <div className="bg-white text-rose-500 rounded-2xl rounded-tr-none p-4 shadow-sm border border-rose-100 flex items-center gap-2">
                   <Loader2 className="animate-spin" size={20} />
-                  <span>ألفا قاعد يخمم...</span>
+                  <span>4lfa قاعد يخمم...</span>
                 </div>
               </div>
             )}
@@ -393,7 +397,7 @@ export default function App() {
                   {isRecording ? <MicOff size={22} /> : <Mic size={22} />}
                 </button>
               )}
-              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "قاعد نسمع فيك..." : "أكتب ميساج لألفا..."} className="flex-1 bg-gray-50 border border-rose-200 rounded-full px-5 py-3 text-[1rem] focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all" disabled={isLoading} />
+              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "قاعد نسمع فيك..." : "أكتب ميساج لـ 4lfa..."} className="flex-1 bg-gray-50 border border-rose-200 rounded-full px-5 py-3 text-[1rem] focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all" disabled={isLoading} />
               <button type="submit" disabled={!input.trim() || isLoading} className="bg-rose-600 text-white rounded-full w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md shrink-0">
                 <Send size={22} className="-scale-x-100" />
               </button>
